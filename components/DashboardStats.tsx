@@ -30,31 +30,42 @@ function StatCard({ icon, label, value, trend }: StatCardProps) {
   );
 }
 
-export function DashboardStats() {
+interface DashboardStatsProps {
+  totalBookmarks?: number;
+  totalReminders?: number;
+  completionRate?: number;
+}
+
+export function DashboardStats({ 
+  totalBookmarks = 0, 
+  totalReminders = 0, 
+  completionRate = 0 
+}: DashboardStatsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatCard
+        icon={<BookOpen className="w-5 h-5 text-islamic-green" />}
+        label="Bookmarks"
+        value={totalBookmarks.toString()}
+        trend={totalBookmarks > 0 ? "Saved" : "Start saving"}
+      />
+      <StatCard
         icon={<Calendar className="w-5 h-5 text-islamic-green" />}
-        label="Days Active"
-        value="12"
-        trend="+3"
+        label="Reminders"
+        value={totalReminders.toString()}
+        trend={totalReminders > 0 ? "Active" : "Create first"}
       />
       <StatCard
         icon={<CheckCircle className="w-5 h-5 text-islamic-green" />}
         label="Completed"
-        value="48"
-        trend="+8"
-      />
-      <StatCard
-        icon={<BookOpen className="w-5 h-5 text-islamic-green" />}
-        label="Bookmarks"
-        value="23"
-        trend="+5"
+        value={`${completionRate}%`}
+        trend="This month"
       />
       <StatCard
         icon={<Clock className="w-5 h-5 text-islamic-green" />}
         label="Next Dua"
-        value="2h 15m"
+        value="6:00 AM"
+        trend="Tomorrow"
       />
     </div>
   );
