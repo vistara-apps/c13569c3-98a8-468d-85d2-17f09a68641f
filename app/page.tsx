@@ -7,81 +7,89 @@ import { DashboardStats } from '@/components/DashboardStats';
 import { QuickActions } from '@/components/QuickActions';
 import { NotificationCard } from '@/components/NotificationCard';
 import { BookmarkItem } from '@/components/BookmarkItem';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useReminders } from '@/lib/hooks/useReminders';
+import { useBookmarks } from '@/lib/hooks/useBookmarks';
 import { DAILY_DUAS } from '@/lib/constants';
-import { Reminder, Bookmark } from '@/lib/types';
-import { generateId } from '@/lib/utils';
 
 export default function HomePage() {
   const { setFrameReady } = useMiniKit();
-  const [currentReminder, setCurrentReminder] = useState<Reminder | null>(null);
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const { isAuthenticated, isReady, login, userData } = useAuth();
+  const { todayReminders, markCompleted, getCompletionStats, isLoading: remindersLoading } = useReminders();
+  const { bookmarks, getRecentBookmarks, createBookmarkFromDua, deleteBookmark, isLoading: bookmarksLoading } = useBookmarks();
   const [activeTab, setActiveTab] = useState<'today' | 'bookmarks'>('today');
 
   useEffect(() => {
     setFrameReady();
-    
-    // Initialize with a sample reminder
-    const todayDua = DAILY_DUAS[0];
-    setCurrentReminder({
-      reminderId: generateId(),
-      userId: 'demo-user',
-      duaTitle: todayDua.title,
-      duaText: todayDua.translation,
-      duaArabic: todayDua.arabic,
-      scheduledTime: '06:00',
-      notificationSent: false,
-      createdAt: new Date(),
-    });
-
-    // Initialize with sample bookmarks
-    setBookmarks([
-      {
-        bookmarkId: generateId(),
-        userId: 'demo-user',
-        contentTitle: 'Morning Dhikr Benefits',
-        contentBody: 'Reciting morning dhikr provides spiritual protection and brings barakah to your day. It connects you with Allah and sets a positive tone for all activities.',
-        tags: ['morning', 'dhikr', 'benefits'],
-        createdAt: new Date(Date.now() - 86400000), // Yesterday
-      },
-      {
-        bookmarkId: generateId(),
-        userId: 'demo-user',
-        contentTitle: 'Importance of Consistency',
-        contentBody: 'Consistency in spiritual practices, even if small, is more beloved to Allah than sporadic large efforts. The Prophet (PBUH) emphasized regular worship.',
-        tags: ['consistency', 'sunnah', 'worship'],
-        createdAt: new Date(Date.now() - 172800000), // 2 days ago
-      },
-    ]);
   }, [setFrameReady]);
 
-  const handleCompleteReminder = (reminderId: string) => {
-    setCurrentReminder(prev => 
-      prev ? { ...prev, completed: true } : null
+  // Show login screen if not authenticated
+  if (isReady && !isAuthenticated) {
+    return (
+      <div className="max-w-md md:max-w-lg mx-auto px-4 py-6 min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-8">
+          <div className="space-y-4">
+            <div className="text-6xl">🕌</div>
+            <h1 className="text-4xl font-bold text-gray-900">DuaFlow</h1>
+            <p className="text-xl text-gray-600">
+              Never miss a spiritual practice. Organize your divine connections.
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <PrimaryButton onClick={login} variant="default" className="w-full">
+              Connect Wallet & Start
+            </PrimaryButton>
+            <p className="text-sm text-gray-500">
+              Connect with Farcaster or your wallet to begin your spiritual journey
+            </p>
+          </div>
+        </div>
+      </div>
     );
+  }
+
+  // Show loading screen while initializing
+  if (!isReady || remindersLoading || bookmarksLoading) {
+    return (
+      <div className="max-w-md md:max-w-lg mx-auto px-4 py-6 min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin text-4xl">🕌</div>
+          <p className="text-gray-600">Loading your spiritual dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const completionStats = getCompletionStats();
+  const recentBookmarks = getRecentBookmarks(5);
+
+  const handleCompleteReminder = (reminderId: string) => {
+    markCompleted(reminderId);
   };
 
-  const handleBookmarkReminder = (reminder: Reminder) => {
-    const newBookmark: Bookmark = {
-      bookmarkId: generateId(),
-      userId: reminder.userId,
-      contentTitle: reminder.duaTitle,
-      contentBody: `${reminder.duaArabic}\n\n${reminder.duaText}`,
-      tags: ['dua', 'daily'],
-      createdAt: new Date(),
-    };
-    
-    setBookmarks(prev => [newBookmark, ...prev]);
+  const handleBookmarkReminder = (reminder: any) => {
+    createBookmarkFromDua({
+      title: reminder.duaTitle,
+      arabic: reminder.duaArabic || '',
+      translation: reminder.duaText,
+      category: 'daily'
+    });
   };
 
   const handleDeleteBookmark = (bookmarkId: string) => {
-    setBookmarks(prev => prev.filter(b => b.bookmarkId !== bookmarkId));
+    deleteBookmark(bookmarkId);
   };
 
   return (
     <div className="max-w-md md:max-w-lg mx-auto px-4 py-6">
       <Header />
       
-      <DashboardStats />
+      <DashboardStats 
+        todayStats={completionStats}
+        totalBookmarks={bookmarks.length}
+      />
       
       <QuickActions
         onAddReminder={() => console.log('Add reminder')}
@@ -117,24 +125,44 @@ export default function HomePage() {
       </div>
 
       {/* Content */}
-      {activeTab === 'today' && currentReminder && (
+      {activeTab === 'today' && (
         <div className="space-y-6">
-          <NotificationCard
-            reminder={currentReminder}
-            variant="withAction"
-            onComplete={handleCompleteReminder}
-            onBookmark={handleBookmarkReminder}
-          />
+          {todayReminders.length > 0 ? (
+            todayReminders.map((reminder) => (
+              <NotificationCard
+                key={reminder.reminderId}
+                reminder={reminder}
+                variant="withAction"
+                onComplete={handleCompleteReminder}
+                onBookmark={handleBookmarkReminder}
+              />
+            ))
+          ) : (
+            <div className="glass-card p-8 rounded-card text-center">
+              <div className="w-16 h-16 bg-islamic-green bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🌅</span>
+              </div>
+              <h3 className="text-lg font-semibold text-text mb-2">
+                No reminders for today
+              </h3>
+              <p className="text-muted mb-4">
+                Set up your daily reminders to get started with your spiritual practice.
+              </p>
+              <PrimaryButton variant="default">
+                Set Up Reminders
+              </PrimaryButton>
+            </div>
+          )}
           
           {/* Next Reminders Preview */}
           <div className="glass-card p-4 rounded-card">
-            <h3 className="text-lg font-semibold text-text mb-4">Upcoming</h3>
+            <h3 className="text-lg font-semibold text-text mb-4">Available Duas</h3>
             <div className="space-y-3">
-              {DAILY_DUAS.slice(1, 3).map((dua, index) => (
+              {DAILY_DUAS.slice(0, 3).map((dua, index) => (
                 <div key={dua.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-8 h-8 bg-islamic-green bg-opacity-20 rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-islamic-green">
-                      {index + 2}
+                      {index + 1}
                     </span>
                   </div>
                   <div className="flex-1">
@@ -170,9 +198,9 @@ export default function HomePage() {
               <p className="text-muted mb-4">
                 Save your favorite Duas and spiritual content to access them anytime.
               </p>
-              <button className="btn-primary">
+              <PrimaryButton variant="default" onClick={() => setActiveTab('today')}>
                 Browse Duas
-              </button>
+              </PrimaryButton>
             </div>
           )}
         </div>
