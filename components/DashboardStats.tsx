@@ -30,31 +30,44 @@ function StatCard({ icon, label, value, trend }: StatCardProps) {
   );
 }
 
-export function DashboardStats() {
+interface DashboardStatsProps {
+  todayStats?: {
+    total: number;
+    completed: number;
+    pending: number;
+    percentage: number;
+  };
+  totalBookmarks?: number;
+}
+
+export function DashboardStats({ todayStats, totalBookmarks = 0 }: DashboardStatsProps) {
+  const completionPercentage = todayStats?.percentage || 0;
+  const completedToday = todayStats?.completed || 0;
+  const totalToday = todayStats?.total || 0;
+  
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatCard
         icon={<Calendar className="w-5 h-5 text-islamic-green" />}
-        label="Days Active"
-        value="12"
-        trend="+3"
+        label="Today's Progress"
+        value={`${completionPercentage}%`}
+        trend={completedToday > 0 ? `${completedToday}/${totalToday}` : undefined}
       />
       <StatCard
         icon={<CheckCircle className="w-5 h-5 text-islamic-green" />}
         label="Completed"
-        value="48"
-        trend="+8"
+        value={completedToday.toString()}
+        trend={totalToday > 0 ? `of ${totalToday}` : undefined}
       />
       <StatCard
         icon={<BookOpen className="w-5 h-5 text-islamic-green" />}
         label="Bookmarks"
-        value="23"
-        trend="+5"
+        value={totalBookmarks.toString()}
       />
       <StatCard
         icon={<Clock className="w-5 h-5 text-islamic-green" />}
-        label="Next Dua"
-        value="2h 15m"
+        label="Pending"
+        value={(todayStats?.pending || 0).toString()}
       />
     </div>
   );
