@@ -1,0 +1,30 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "DuaFlow",
+    "subtitle": "Built with Zara",
+    "description": "DuaFlow is a Base Mini App built with Zara.",
+    "iconUrl": "https://0co.to/images/zara-2.png",
+    "homeUrl": "https://c13569c398a8468d85d217f09a68641f-12zk.vercel.app",
+    "splashImageUrl": "https://c13569c398a8468d85d217f09a68641f-12zk.vercel.app/splash.png",
+    "splashBackgroundColor": "#000000",
+    "heroImageUrl": "https://c13569c398a8468d85d217f09a68641f-12zk.vercel.app/image.png",
+    "tagline": "DuaFlow",
+    "screenshotUrls": [
+      "https://c13569c398a8468d85d217f09a68641f-12zk.vercel.app/screenshot.png",
+      "https://c13569c398a8468d85d217f09a68641f-12zk.vercel.app/screenshot.png"
+    ],
+    "primaryCategory": "social",
+    "tags": [
+      "base",
+      "miniapp",
+      "onchainkit"
+    ],
+    "webhookUrl": "https://c13569c398a8468d85d217f09a68641f-12zk.vercel.app/api/webhook"
+  }
+}

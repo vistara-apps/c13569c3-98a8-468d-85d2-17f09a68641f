@@ -1,0 +1,14 @@
+{
+  "name": "DuaFlow",
+  "description": "DuaFlow is a Base Mini App built with Zara.",
+  "image": "https://dummyimage.com/1200x628/0a0b0d/ffffff.png&text=OG",
+  "external_url": "https://c13569c3-98a8-468d-85d2-17f09a68641f.vercel.app",
+  "properties": {
+    "app": {
+      "name": "DuaFlow",
+      "description": "DuaFlow is a Base Mini App built with Zara.",
+      "url": "https://c13569c3-98a8-468d-85d2-17f09a68641f.vercel.app",
+      "icon": "https://0co.to/images/zara-2.png"
+    }
+  }
+}
